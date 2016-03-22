@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru" xml:lang="ru">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Graph</title>
+    <script src='Graph.js'></script>
+    <script src='Libs/interacts.js'></script>
+    <script src="http://code.jquery.com/jquery-1.12.0.min.js"></script>
+    <style>
+    div{
+        border: solid lightgray 3px;
+        border-width: 1px 3px 3px 1px;
+        height: 500px;
+        width: 800px;
+    }    
+    </style>
+</head>
+
+<body>
+    <div id='ForGraph'>
+    </div>
+    <script src='main.js'></script>
+    <script>
+        //elements resizing script
+        interact('#ForGraph')
+            .draggable({
+                onmove: window.dragMoveListener
+            })
+            .resizable({
+                preserveAspectRatio: false,
+                edges: { left: true, right: true, bottom: true, top: true },                                
+            })
+            .on('resizemove', function (event) {
+                var target = event.target,
+                    x = (parseFloat(target.getAttribute('data-x')) || 0),
+                    y = (parseFloat(target.getAttribute('data-y')) || 0);
+                    
+                for (var c in target.childNodes){
+                    var node = target.childNodes[c];
+                    if (node.checkMinSize){
+                        var res = node.checkMinSize(event.rect.width,event.rect.height);                        
+                        if (!res[0]) {
+                            event.rect.width = target.style.width;
+                            event.deltaRect.left = 0;
+                        }
+                        if (!res[1]) {
+                            event.rect.height = target.style.height;
+                            event.deltaRect.top = 0;
+                        }
+                    }                       
+                }
+                // update the element's style
+                target.style.width  = event.rect.width + 'px';
+                target.style.height = event.rect.height + 'px';
+
+                // translate when resizing from top or left edges
+                var lastX = x;
+                var lastY = y;
+                x += event.deltaRect.left;
+                y += event.deltaRect.top;
+
+                target.style.webkitTransform = target.style.transform =
+                    'translate(' + x + 'px,' + y + 'px)';
+
+                target.setAttribute('data-x', x);
+                target.setAttribute('data-y', y);
+                
+                for (var c in target.childNodes){
+                    var node = target.childNodes[c];
+                    if (node.resizeEvent) node.resizeEvent();
+                }                   
+            });
+            
+        function dragMoveListener (event) {
+            var target = event.target,
+            // keep the dragged position in the data-x/data-y attributes
+            x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+            y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+            // translate the element
+            target.style.webkitTransform =
+            target.style.transform =
+            'translate(' + x + 'px, ' + y + 'px)';
+
+            // update the posiion attributes
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+        }
+
+        // this is used later in the resizing and gesture demos
+        window.dragMoveListener = dragMoveListener;
+    </script>
+</body>
+
+</html>
